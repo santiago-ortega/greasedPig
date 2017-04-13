@@ -1,7 +1,7 @@
 # greasedPig
 Deployment of Kubernetes using the [IBM Spectrum Conductor for Containers](https://www.ibm.com/developerworks/community/wikis/home?lang=en#!/wiki/W1559b1be149d_43b0_881e_9783f38faaff)
 
-![alt text][https://github.com/santiago-ortega/greasedPig/raw/master/architecture.png]
+![alt text][https://github.com/santiago-ortega/greasedPig/architecture.png]
 
 
 ## Purpose
