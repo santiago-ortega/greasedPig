@@ -1,0 +1,30 @@
+#!/usr/bin/expect
+
+#######################################################################
+# INTERNATIONAL BUSINESS MACHINES CORPORATION PROVIDES THIS SOFTWARE ON
+# AN "AS IS" BASIS AND IBM DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED,
+# INCLUDING, BUT NOT LIMITED TO, THE WARRANTY OF NON-INFRINGEMENT AND THE
+# IMPLIED WARRANTIES OF  MERCHANTABILITY OR FITNESS FOR A PARTICULAR
+# PURPOSE.  IBM SHALL NOT BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OR OPERATION OF
+# THIS SOFTWARE.  IBM HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT,
+# UPDATES, ENHANCEMENTS OR MODIFICATIONS TO THE SOFTWARE.
+#######################################################################
+
+set vmname [lindex $argv 0];
+set password [lindex $argv 1];
+set timeout 20
+
+log_file $vmname
+
+spawn virsh console $vmname
+sleep 30
+
+expect "Please unlock disk vda5_crypt:"
+
+send "$password\r";
+sleep 5
+
+send "\x1b\r"
+
+log_file

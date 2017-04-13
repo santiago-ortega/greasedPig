@@ -1,0 +1,30 @@
+#!/usr/bin/expect
+
+#######################################################################
+# INTERNATIONAL BUSINESS MACHINES CORPORATION PROVIDES THIS SOFTWARE ON
+# AN "AS IS" BASIS AND IBM DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED,
+# INCLUDING, BUT NOT LIMITED TO, THE WARRANTY OF NON-INFRINGEMENT AND THE
+# IMPLIED WARRANTIES OF  MERCHANTABILITY OR FITNESS FOR A PARTICULAR
+# PURPOSE.  IBM SHALL NOT BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OR OPERATION OF
+# THIS SOFTWARE.  IBM HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT,
+# UPDATES, ENHANCEMENTS OR MODIFICATIONS TO THE SOFTWARE.
+#######################################################################
+
+set ip_address [lindex $argv 0];
+set timeout 10
+
+log_file $ip_address
+
+spawn ssh root@$ip_address
+sleep 5
+
+expect "(Are you sure you want to continue connecting yes/no)?"
+
+send "yes\r";
+
+sleep 2
+
+send "exit\r"
+
+log_file

@@ -1,0 +1,81 @@
+#######################################################################
+# INTERNATIONAL BUSINESS MACHINES CORPORATION PROVIDES THIS SOFTWARE ON
+# AN "AS IS" BASIS AND IBM DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED,
+# INCLUDING, BUT NOT LIMITED TO, THE WARRANTY OF NON-INFRINGEMENT AND THE
+# IMPLIED WARRANTIES OF  MERCHANTABILITY OR FITNESS FOR A PARTICULAR
+# PURPOSE.  IBM SHALL NOT BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OR OPERATION OF
+# THIS SOFTWARE.  IBM HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT,
+# UPDATES, ENHANCEMENTS OR MODIFICATIONS TO THE SOFTWARE.
+#######################################################################
+
+
+### Partitioning
+d-i partman-auto/disk string /dev/sda
+d-i partman-auto/method string crypto
+d-i partman-crypto/passphrase password temp4Now
+d-i partman-crypto/passphrase-again password temp4Now
+d-i partman-lvm/device_remove_lvm boolean true
+d-i partman-md/device_remove_md boolean true
+d-i partman-auto/purge_lvm_from_device boolean true
+d-i partman-auto-lvm/new_vg_name string crypt
+d-i partman-lvm/confirm boolean true
+d-i partman/alignment string "optimal"
+d-i partman-auto-lvm/guided_size string max
+#d-i partman-auto/choose_recipe select multi
+d-i partman-auto/expert_recipe string                         \
+      boot-root ::                                            \
+              256 100 500 ext3                                \
+                      $primary{ }                             \
+                      $bootable{ }                            \
+                      method{ format } format{ }              \
+                      device{ /dev/sda }                      \
+                      use_filesystem{ } filesystem{ ext3 }    \
+                      mountpoint{ /boot }                     \
+              .                                               \
+              1024 100 2048 linux-swap                        \
+                      $lvmok{ }                               \
+                      lv_name{ swap } in_vg { crypt }         \
+                      device{ /dev/sda }                      \
+                      method{ swap } format{ }                \
+              .                                               \
+              60000 100 94000 ext4                            \
+                      $lvmok{ }                               \
+                      lv_name{ root } in_vg { crypt }         \
+                      method{ format } format{ }              \
+                      device{ /dev/sda }                      \
+                      use_filesystem{ } filesystem{ ext4 }    \
+                      mountpoint{ / }                         \
+              .
+#d-i partman/default_filesystem string ext4
+
+
+# This makes partman automatically partition without confirmation
+d-i partman-partitioning/confirm_write_new_label boolean true
+d-i partman/choose_partition select finish
+d-i partman/confirm boolean true
+d-i partman/confirm_nooverwrite boolean true
+d-i partman-lvm/confirm_nooverwrite boolean true
+
+# Locale
+d-i debian-installer/locale string en_US
+d-i console-setup/ask_detect boolean false
+d-i console-setup/layoutcode string us
+
+
+# Grub
+d-i grub-installer/grub2_instead_of_grub_legacy boolean true
+d-i grub-installer/only_debian boolean true
+d-i finish-install/reboot_in_progress note
+d-i finish-install/keep-consoles boolean true
+d-i debian-installer/exit/halt boolean false
+d-i grub-installer/with_other_os boolean true
+
+
+### Running custom commands
+d-i preseed/late_command string \
+in-target sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"/GRUB_CMDLINE_LINUX_DEFAULT="nosplash console=tty0 console=ttyS0,38400n8 serial"/' /etc/default/grub ; \
+in-target update-grub; \
+in-target mkdir -p /root/.ssh ; \
+cp /cdrom/authorized_keys  /target/root/.ssh/ ; \
+in-target chmod -R go-rwx /root/.ssh
