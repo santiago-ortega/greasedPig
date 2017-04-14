@@ -15,7 +15,7 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source ../environment.sh
 
-virsh destroy $1
-virsh undefine $1
+virsh destroy ${clone_vm_name}
+virsh undefine ${clone_vm_name}
 
-rm -f ${IMG_DIR}/$1.qcow2 ${IMG_DIR}/$1.data.qcow2
+rm -f ${IMG_DIR}/${clone_vm_name}.qcow2 ${IMG_DIR}/${clone_vm_name}.data.qcow2

@@ -15,15 +15,24 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source ../environment.sh
 
-LOG=${DEST_DIR}/$0_$(date +%Y-%m-%d_%H_%M).log
+if [ "${LOG_FILE}x" == "x" ]
+then
+  LOG=${LOG_DIR}/$0_$(date +%Y-%m-%d_%H_%M).log
+else
+  LOG=${LOG_FILE}
+fi
 
 if [ "$1x" == "x" ]
 then
   name=${master_vm_name}
   mac_address=${master_mac_addr}
+  size=${master_size}
+  data_size=${master_data_size}
 else
   name=${worker_vm_name}
   mac_address=${worker_mac_addr}
+  size=${worker_size}
+  data_size=${worker_data_size}
 fi
 
 if [ ! -d ${IMG_DIR} ]
@@ -33,20 +42,20 @@ fi
 
 qemu-img create -f qcow2 \
                   -o preallocation=metadata \
-                  ${IMG_DIR}/${name}.qcow2 100G >>${LOG}
+                  ${IMG_DIR}/${name}.qcow2 ${size} >>${LOG}
 qemu-img create -f qcow2 \
                   -o preallocation=metadata \
-                  ${IMG_DIR}/${name}.data.qcow2 200G >>${LOG}
+                  ${IMG_DIR}/${name}.data.qcow2 ${data_size} >>${LOG}
 
 virt-install \
  -n ${name} \
  --description "Ubuntu KVM VM ${name}" \
  --os-type=Linux \
  --os-variant=generic \
- --ram=10240 \
- --vcpus=4 \
- --disk path=${IMG_DIR}/${name}.qcow2,bus=virtio,size=100 \
- --disk path=${IMG_DIR}/${name}.data.qcow2,bus=virtio,size=200 \
+ --ram=${RAM} \
+ --vcpus=${VCPU} \
+ --disk path=${IMG_DIR}/${name}.qcow2,bus=virtio \
+ --disk path=${IMG_DIR}/${name}.data.qcow2,bus=virtio \
  --video qxl  \
  --cdrom ${DEST_DIR}/autoinstall.iso \
  --network bridge:br0 \

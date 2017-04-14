@@ -18,6 +18,8 @@ installer_img=cfc-installer-docker-images-${installer_version}.tar
 ####################
 PASSWORD=temp4Now
 VM_WORKING_DIR=/tmp/
+RAM=10240
+VCPU=4
 
 ####################
 # Master VM data
@@ -25,6 +27,8 @@ VM_WORKING_DIR=/tmp/
 master_vm_name=${os_name}${os_version}.master
 master_ip=10.10.0.31
 master_mac_addr=5c:f3:fc:00:00:00
+master_size=100G
+master_data_size=200G
 
 ####################
 # Worker VM data
@@ -32,6 +36,8 @@ master_mac_addr=5c:f3:fc:00:00:00
 worker_vm_name=${os_name}${os_version}.worker
 worker_ip=10.10.0.32
 worker_mac_addr=5c:f3:fc:00:00:11
+worker_size=100G
+worker_data_size=200G
 
 ####################
 # Clone VM data
@@ -44,6 +50,7 @@ clone_mac_addr=5c:f3:fc:00:00:33
 # Build locations
 ####################
 DEST_DIR=/images/build
+LOG_DIR=${DEST_DIR}/log
 IMG_DIR=${DEST_DIR}/img
 INSTALLER_IMG_DIR=${DEST_DIR}/installer
 KEY_DIR=${DEST_DIR}/keys

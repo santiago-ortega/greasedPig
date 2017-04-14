@@ -59,3 +59,5 @@ extract_images(){
 
 run_installer ${clone_ip}
 extract_images ${clone_ip}
+
+./cleanClone.sh

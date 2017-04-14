@@ -17,7 +17,12 @@ source ../environment.sh
 
 WORK_DIR=${DEST_DIR}/ubuntuiso
 
-LOG=${DEST_DIR}/$0_$(date +%Y-%m-%d_%H_%M).log
+if [ "${LOG_FILE}x" == "x" ]
+then
+  LOG=${LOG_DIR}/$0_$(date +%Y-%m-%d_%H_%M).log
+else
+  LOG=${LOG_FILE}
+fi
 
 if [ ! -d ${DEST_DIR} ]
 then
@@ -33,7 +38,7 @@ then
 mkdir -p ${DEST_DIR}/iso
 fi
 
-mount -o loop ${DIR}/${os_iso} ${DEST_DIR}/iso >> ${LOG}
+mount -o loop ${DIR}/${os_iso} ${DEST_DIR}/iso >> ${LOG} 2>&1
 
 #Copy the relevant files to a different directory
 if [ ! -d ${WORK_DIR} ]

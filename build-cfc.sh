@@ -46,12 +46,18 @@ wait_till_installed(){
 generate_ubuntu_iso(){
   echo "====================="
   echo "Creating the Ubuntu ISO autoinstall image"
+  if [ ! -f ${os_iso} ]
+  then
+    echo "The ${os_iso} was not found under $(pwd)."
+    echo "Download the file ${os_iso} and place it under $(pwd)."
+    exit 1
+  fi
   ./createUbuntuImage.sh
 }
 
 start_vm(){
   virsh start $1
-  ./finishVmCreation.exp $1 ${PASSWORD}
+  ./finishVmCreation.exp $1 ${PASSWORD} ${LOG_FILE}
 }
 
 create_vms(){
@@ -84,8 +90,8 @@ ssh_expect(){
 
   rm -f /root/.ssh/known_hosts
   cd ${DIR}/vms
-  ./ssh_expect.exp $1
-  ./ssh_expect.exp $2
+  ./ssh_expect.exp $1 ${LOG_FILE}
+  ./ssh_expect.exp $2 ${LOG_FILE}
   cd -
 }
 
@@ -121,9 +127,9 @@ load_installer(){
     ssh_command $1 "mkdir -p ${VM_WORKING_DIR}/cfc"
     ssh_command $1 "tar -xvf ${VM_WORKING_DIR}/${installer_img} -C ${VM_WORKING_DIR}/cfc"
     ssh_command $1 "for m in \$(ls ${VM_WORKING_DIR}/cfc) ; do echo \$m ; docker load -i ${VM_WORKING_DIR}/cfc/\$m ;done"
-    ssh_command $1 "rm -f ${INSTALLER_IMG_DIR}/${installer_img}"
+    ssh_command $1 "rm -f ${VM_WORKING_DIR}/${installer_img}"
     ssh_command $1 "rm -rf ${VM_WORKING_DIR}/cfc"
-    scp -i ${KEY_DIR}/id_rsa ${DIR}/runtime/setup-cfc.sh \
+    scp -i ${KEY_DIR}/id_rsa ${DIR}/vms/runtime/setup-cfc.sh \
            root@$1:/home/k8s/
   else
     ./getCfcContainers.sh
@@ -144,9 +150,16 @@ install_packages(){
 
   load_installer $1
 }
+
+package_vms(){
+  virsh dumpxml ${master_vm_name} > ${IMG_DIR}/${master_vm_name}.xml
+  virsh dumpxml ${worker_vm_name} > ${IMG_DIR}/${worker_vm_name}.xml
+}
 #########################
 # MAIN
 #########################
+mkdir -p ${LOG_DIR}
+export LOG_FILE=${LOG_DIR}/build-cfc_$(date +%Y-%m-%d_%H_%M).log
 
 cd ${DIR}/vms
 generate_ubuntu_iso

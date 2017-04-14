@@ -15,7 +15,12 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source ../environment.sh
 
-LOG=${DEST_DIR}/$0_$(date +%Y-%m-%d_%H_%M).log
+if [ "${LOG_FILE}x" == "x" ]
+then
+  LOG=${LOG_DIR}/$0_$(date +%Y-%m-%d_%H_%M).log
+else
+  LOG=${LOG_FILE}
+fi
 
 original=$1
 name=$2
@@ -71,6 +76,6 @@ virsh start ${name}
 
 wait_till_running ${name}
 
-./finishCloneVm.exp ${name} ${PASSWORD}
+./finishCloneVm.exp ${name} ${PASSWORD} ${LOG_FILE}
 
-./ssh_expect.exp ${clone_ip}
+./ssh_expect.exp ${clone_ip} ${LOG_FILE}

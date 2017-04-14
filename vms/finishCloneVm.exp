@@ -13,9 +13,10 @@
 
 set vmname [lindex $argv 0];
 set password [lindex $argv 1];
+set cfc_log [lindex $argv 2];
 set timeout 20
 
-log_file $vmname
+log_file $cfc_log
 
 spawn virsh console $vmname
 expect "Escape character is ^]"
