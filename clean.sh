@@ -3,7 +3,9 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source environment.sh
 
+cd vms
 ${DIR}/vms/cleanClone.sh ${clone_vm_name}
+cd -
 
 sudo rm -rf ${DEST_DIR}
 sudo rm -rf ${WORK_DIR}
