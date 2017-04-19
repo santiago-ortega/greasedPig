@@ -117,6 +117,13 @@ install_dockerpy(){
   ssh_command $1 "pip install docker-py"
 }
 
+update_env(){
+  echo "#!/bin/bash" > ${DIR}/vms/runtime/environment.sh
+  echo "PASSWORD=${PASSWORD}" >> ${DIR}/vms/runtime/environment.sh
+  echo "INSTALLER_VERSION=${installer_version}" >> ${DIR}/vms/runtime/environment.sh
+  chmod 700 ${DIR}/vms/runtime/environment.sh
+}
+
 load_installer(){
   echo "====================="
   echo "Loading the CfC installer"
@@ -131,6 +138,13 @@ load_installer(){
     ssh_command $1 "rm -rf ${VM_WORKING_DIR}/cfc"
     scp -i ${KEY_DIR}/id_rsa ${DIR}/vms/runtime/setup-cfc.sh \
            root@$1:/home/k8s/
+    update_env
+    scp -i ${KEY_DIR}/id_rsa ${DIR}/vms/runtime/updateVm.sh \
+                  root@$1:/home/k8s/
+    scp -i ${KEY_DIR}/id_rsa ${DIR}/vms/runtime/environment.sh \
+                  root@$1:/home/k8s/
+    scp -i ${KEY_DIR}/id_rsa ${KEY_DIR}/id_rsa \
+                  root@$1:/home/k8s/
   else
     ./getCfcContainers.sh
 
@@ -151,6 +165,21 @@ install_packages(){
   load_installer $1
 }
 
+add_product_files() {
+  echo "====================="
+  echo "Adding product files to the Worker VM"
+  if [ "${add}x" == "x"  ]
+  then
+    echo "No products will be added to Worker VM"
+  else
+    for script in `${DIR}/products/*.sh`
+    do
+      ${DIR}/products/${script}
+    done
+  fi
+
+}
+
 package_vms(){
   virsh dumpxml ${master_vm_name} > ${IMG_DIR}/${master_vm_name}.xml
   virsh dumpxml ${worker_vm_name} > ${IMG_DIR}/${worker_vm_name}.xml
@@ -160,6 +189,14 @@ package_vms(){
 #########################
 mkdir -p ${LOG_DIR}
 export LOG_FILE=${LOG_DIR}/build-cfc_$(date +%Y-%m-%d_%H_%M).log
+
+if [ "$1x" == "x" ]
+then
+  echo "No products will be added to Worker VM"
+  echo "To Add products use the argument 'add'"
+else
+  add=true
+fi
 
 cd ${DIR}/vms
 generate_ubuntu_iso
@@ -171,6 +208,8 @@ ssh_expect ${master_ip} ${worker_ip}
 install_packages ${master_ip}
 
 install_packages ${worker_ip}
+
+add_product_files ${worker_ip}
 
 cd -
 

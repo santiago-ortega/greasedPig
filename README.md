@@ -137,6 +137,18 @@ To:
 <imagelabel>+107:+107</imagelabel>  
 ```
 
+Once the VM has started make sure you update:
+1. The hostname
+```
+hostname <my new hostname>
+
+echo <my new hostname> > /etc/hostname
+```
+2. The /etc/hosts file to reflect the new IP configuration  
+
+```
+echo \"$1 ${clone_vm_name}\" >> /etc/hosts
+```
 ***
 # TODOs:
 1. Secure the VMs

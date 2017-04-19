@@ -12,6 +12,8 @@
 #######################################################################
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+source ./environment.sh
+KEY_DIR=${DIR}/keys_dir
 
 remove_locks(){
   echo "====================="
@@ -24,31 +26,31 @@ remove_locks(){
 generate_ssh(){
   echo "====================="
   echo "Generating ssh keys"
-  mkdir -p ${DIR}/keys_dir
+  mkdir -p ${KEY_DIR}
 
-  ssh-keygen -t rsa -f ${DIR}/keys_dir/ssh_key -P ''
+  ssh-keygen -t rsa -f ${KEY_DIR}/ssh_key -P ''
 
 }
 
 copy_sshkey(){
-  if [ ! -f ${DIR}/keys_dir/ssh_key.pub ]
+  if [ ! -f ${KEY_DIR}/ssh_key.pub ]
   then
     generate_ssh
   fi
-  cat ${DIR}/keys_dir/ssh_key.pub | ssh user1@$1 "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"
-  ssh user1@$1 "echo $2 | sudo -S cp -r ~/.ssh /root/"
+  cat ${KEY_DIR}/ssh_key.pub | ssh -i ./id_rsa root@$1 "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"
+  ssh -i ./id_rsa root@$1 "echo $2 | sudo -S cp -r ~/.ssh /root/"
 }
 
 run_installer(){
   echo "====================="
   echo "Running the CfC installer"
   docker run -e LICENSE=accept --net=host --rm --entrypoint=cp \
-             -v ${DIR}:/data ibmcom/cfc-installer:0.4.0 -r cluster /data
+             -v ${DIR}:/data ibmcom/cfc-installer:${INSTALLER_VERSION} -r cluster /data
   cp ${DIR}/hosts ${DIR}/cluster/
   sed -i "s/network_type: flannel/network_type: calico/" ${DIR}/cluster/config.yaml
   echo "always_pull_images: false" >> ${DIR}/cluster/config.yaml
-  cp keys_dir/ssh_key cluster/
-  docker run -e LICENSE=accept --net=host --rm -t -v "$(pwd)/cluster":/installer/cluster ibmcom/cfc-installer:0.4.0 install
+  cp ${KEY_DIR}/ssh_key ${DIR}/cluster/
+  docker run -e LICENSE=accept --net=host --rm -t -v "$(pwd)/cluster":/installer/cluster ibmcom/cfc-installer:${INSTALLER_VERSION} install
   mv ./kubectl /usr/local/bin/kubectl
 }
 
