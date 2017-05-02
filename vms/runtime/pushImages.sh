@@ -1,4 +1,4 @@
-#!/usr/bin/expect
+#!/bin/bash
 
 #######################################################################
 # Copyright 2017 IBM Corp. All Rights Reserved.
@@ -16,21 +16,16 @@
 # permissions and limitations under the License.
 #######################################################################
 
-set vmname [lindex $argv 0];
-set password [lindex $argv 1];
-set cfc_log [lindex $argv 2];
-set timeout 20
 
-log_file $cfc_log
+docker login master.cfc:8500 -u admin -p admin
 
-spawn virsh console $vmname
-sleep 30
+for m in `docker images -f 'reference=zmanaged*' | awk '{print $1":"$2}'`;
+do
+  echo $m
+  docker tag $m master.cfc:8500/admin/$m
+  docker push master.cfc:8500/admin/$m
+done
 
-expect "Please unlock disk vda5_crypt:"
-
-send "$password\r";
-sleep 5
-
-send "\x1b\r"
-
-log_file
+docker tag registry.ng.bluemix.net/zoi_dev/ibm-spark:1.6.3.0 \
+           master.cfc:8500/admin/registry.ng.bluemix.net/zoi_dev/ibm-spark:1.6.3.0
+docker push master.cfc:8500/admin/registry.ng.bluemix.net/zoi_dev/ibm-spark:1.6.3.0

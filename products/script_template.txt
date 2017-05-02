@@ -1,0 +1,52 @@
+#!/bin/bash
+
+#######################################################################
+# INTERNATIONAL BUSINESS MACHINES CORPORATION PROVIDES THIS SOFTWARE ON
+# AN "AS IS" BASIS AND IBM DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED,
+# INCLUDING, BUT NOT LIMITED TO, THE WARRANTY OF NON-INFRINGEMENT AND THE
+# IMPLIED WARRANTIES OF  MERCHANTABILITY OR FITNESS FOR A PARTICULAR
+# PURPOSE.  IBM SHALL NOT BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OR OPERATION OF
+# THIS SOFTWARE.  IBM HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT,
+# UPDATES, ENHANCEMENTS OR MODIFICATIONS TO THE SOFTWARE.
+#######################################################################
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+source ${DIR}/../environment.sh
+
+MY_PRODUCT_FILE=my_product.tar.gz
+MY_PRODUCT=myproduct
+
+ssh_command(){
+  ssh -i ${KEY_DIR}/id_rsa root@$1 "$2"
+}
+
+###########################
+# Copy my product to Worker VM
+###########################
+scp -i ${KEY_DIR}/id_rsa ${MY_PRODUCT_FILE} root@${worker_ip}:${VM_WORKING_DIR}
+
+###########################
+# Extract my product to a directory
+###########################
+ssh_command ${worker_ip} "rm -rf ${VM_WORKING_DIR}/${MY_PRODUCT}/"
+ssh_command ${worker_ip} "mkdir ${VM_WORKING_DIR}/${MY_PRODUCT}/"
+ssh_command ${worker_ip} "tar -zxvf ${VM_WORKING_DIR}/${MY_PRODUCT_FILE} -C ${VM_WORKING_DIR}/${MY_PRODUCT}/"
+
+###########################
+# Load containers to Docker and
+# clean loaded images
+###########################
+ssh_command ${worker_ip} "for m in \$(ls ${VM_WORKING_DIR}/${MY_PRODUCT}/*.tar) ; do echo \$m ; docker load -i ${VM_WORKING_DIR}/${MY_PRODUCT}/\$m ; rm -f ${VM_WORKING_DIR}/${MY_PRODUCT}/\$m;done"
+
+###########################
+# Move all other files to /home/k8s
+###########################
+ssh_command ${worker_ip} "mv ${VM_WORKING_DIR}/${MY_PRODUCT} /home/k8s/"
+
+###########################
+# Clean up files
+###########################
+ssh_command ${worker_ip} "rm -rf ${VM_WORKING_DIR}/${MY_PRODUCT_FILE}"
+
+exit 0
